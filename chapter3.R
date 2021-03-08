@@ -83,3 +83,185 @@ ggplot(data = mpg) +
 #----exercise 6
 
 #-----------------------------#
+
+#Geometric objects
+
+#plots with different representation of data, but iqual data, uses different GEOMS
+#A geom is the geometrical object that a plot uses to represent data.
+#to change the geom use different function of geom
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy))
+
+ggplot(data = mpg) + 
+  geom_smooth(mapping = aes(x = displ, y = hwy))
+
+#not every aesthetic works with every geom
+ggplot(data = mpg) + 
+  geom_smooth(mapping = aes(x = displ, y = hwy, linetype = drv))
+
+#ggplot2 provides over 40 geoms, and extension packages provide more https://exts.ggplot2.tidyverse.org/gallery/
+#http://rstudio.com/resources/cheatsheets
+
+ggplot(data = mpg) +
+  geom_smooth(mapping = aes(x = displ, y = hwy))
+
+#set the group aes to a categorical variable
+ggplot(data = mpg) +
+  geom_smooth(mapping = aes(x = displ, y = hwy, group = drv))
+
+ggplot(data = mpg) +
+  geom_smooth(
+    mapping = aes(x = displ, y = hwy, color = drv),
+    show.legend = FALSE
+  )
+
+#plot with 2 geoms in the same plot
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  geom_smooth(mapping = aes(x = displ, y = hwy))
+#plot with 2 geoms in the same plot but passing a set of mappings to ggplot()
+#will aply to each geom in the graph
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + #global mapping
+  geom_point() + 
+  geom_smooth()
+
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + #global mapping
+  geom_point(mapping = aes(color = class)) + #local mapping
+  geom_smooth()
+
+#this command selects only the subcompact cars for the smooth geom
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class)) + 
+  geom_smooth(data = filter(mpg, class == "subcompact"), se = FALSE)
+
+#----exercise 1
+ggplot(data = mpg) + 
+  geom_line(mapping = aes(x = drv, y = cyl))
+
+#----exercise 2
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point() + 
+  geom_smooth(se = FALSE)
+#----exercise 3
+#show.legend = FALSE doesnt show the legend for the graph
+
+#----exercise 4
+# se displays confidence interval around smooth, its TRUE by default
+
+#----exercise 5
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point() + 
+  geom_smooth()
+
+ggplot() + 
+  geom_point(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_smooth(data = mpg, mapping = aes(x = displ, y = hwy))
+
+# os gráficos n são diferentes, no primeiro temos mapping global, no segundo mapping local
+#----exercise 6
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point() + 
+  geom_smooth(se = FALSE)
+
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
+  geom_point() +
+  geom_smooth(mapping = aes(group= drv), se=FALSE)
+
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color= drv)) +
+  geom_point() +
+  geom_smooth(se=FALSE)
+
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
+  geom_point(aes(color= drv)) +
+  geom_smooth(se=FALSE)
+
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
+  geom_point(aes(color= drv)) +
+  geom_smooth(aes(group = drv), se=FALSE)
+
+#nesse é preciso inverter as cores, transparente por fora e colorido por dentro!
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color= drv)) +
+  geom_point(        alpha=0.5,
+                     size=3,
+                     stroke = 2)
+
+#-----------------------------#
+
+#Statistical transformations
+
+# bar chart
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut)) #bar charts, histograms and frequency polygons bin the data and then plot bin counts, the number of points that fall in each bin
+# algorithm used to calculate new values for a graph: stat, short for statistical transformation
+# need to see the default value for stat for every graph
+#eom_bar() uses stat_count() as default
+
+ggplot(data = diamonds) + 
+  stat_count(mapping = aes(x = cut))
+#every geom has a default stat and every stat has a default geom
+
+
+demo <- tribble(
+  ~cut,         ~freq,
+  "Fair",       1610,
+  "Good",       4906,
+  "Very Good",  12082,
+  "Premium",    13791,
+  "Ideal",      21551
+)
+
+ggplot(data = demo) +
+  geom_bar(mapping = aes(x = cut, y = freq), stat = "identity")
+
+#display a bar chart of proportion, rather than count
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, y = stat(prop), group = 1))
+
+ggplot(data = diamonds) + 
+  stat_summary(
+    mapping = aes(x = cut, y = depth),
+    fun.min = min,
+    fun.max = max,
+    fun = median
+  )
+
+?stat_bin
+
+#----exercise 1
+?stat_summary
+#geom = "pointrange"
+
+?geom_pointrange
+ggplot(data = diamonds) + 
+  geom_pointrange(
+    mapping = aes(x = cut, y = depth)
+  )
+#----exercise 2
+?geom_col()
+?geom_bar()
+#these are the 2 tipes of bar charts,
+#geom_bar() makes the height of the bar proportional to the number of cases in each group 
+#If you want the heights of the bars to represent values in the data, use geom_col() instead. 
+#geom_bar() uses stat_count() by default: it counts the number of cases at each x position. 
+#geom_col() uses stat_identity(): it leaves the data as is.
+
+#----exercise 3
+#----exercise 4
+?stat_smooth
+#use the same arguments of geom_smooth
+#----exercise 5
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, y = after_stat(prop)))
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = color, y = after_stat(prop)))
+
+#-----------------------------#
+
+#Position adjustments
+
+#to colour a bar we can use colour or fill:
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, colour = cut))
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = cut))
