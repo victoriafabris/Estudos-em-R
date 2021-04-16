@@ -1,17 +1,27 @@
 ##fonte da aula: https://leticiaraposo.netlify.app/courses/analise-inteligente/
 
-#Passo 1 - Carregar pacotes e conjuntos de dados
+##analise do banco de dados titanic que contem informacoes passageiros do Titanic
+##queremos verificar quais informações são relevantes para a morte dos passageiros
+##e construir um modelo de regressão logística para predizer a morte
+
+#Passo 1 - Carregar conjuntos de dados e pacotes
 if(!require(titanic)) install.packages("titanic") #se nao estiver instalado, instala
 library(titanic) #carrega biblioteca
 
-##separar 70% dos dados para treino e 30% para teste
+if(!require(pacman)) install.packages("pacman") #se nao estiver instalado, instala
+library(pacman) #carrega biblioteca
+
+##carrega todos os pacotes que iremos usar utilizando a funcao p_load do pacman
+pacman::p_load(dplyr, psych, car, MASS, DescTools, QuantPsyc, ggplot2, tidyr)
+
+##separar 70% dos dados para treino e 30% para teste, o conjunto de dados já veio separado
 #Passo 2 - Atribuir nome aos subconjuntos 
-train <- titanic_train
-test <- titanic_test
+train <- titanic_train #conjunto para treino
+test <- titanic_test #conjunto para teste
 test <- merge(test, titanic_gender_class_model, by="PassengerId")
 ### Pré-processamento dos dados ###
 
-# Verificando as variáveis
+#Passo 2 - Verificando as variáveis
 str(train)
 str(test)
 # Variáveis
@@ -22,7 +32,7 @@ str(test)
 # Fare: Tarifa
 # Embarked: Porto de embarque C = Cherbourg, Q = Queenstown, S = Southampton
 
-## Verificar se há dados ausentes nos dados
+#Passo 3 - Verificar se há dados ausentes nos dados
 colSums(is.na(train))
 colSums(is.na(test))
 
@@ -42,7 +52,7 @@ test$Age[is.na(test$Age)] <- median(test$Age, na.rm=T)
 train <- subset(train, select = -c(Cabin, PassengerId, Ticket, Name))
 test <- subset(test, select = -c(Cabin, PassengerId, Ticket, Name))
 
-# Converter "Survived","Pclass","Sex","Embarked" para fatores
+#Passo 4 - Converter "Survived","Pclass","Sex","Embarked" para fatores
 for (i in c("Survived","Pclass","Sex","Embarked")){
   train[,i] <- as.factor(train[,i])
 }
@@ -54,7 +64,7 @@ for (j in c("Survived","Pclass","Sex","Embarked")){
 # Variável resposta: Survived
 # Variáveis explicativas: as demais
 
-# Correlação das variáveis numéricas
+#Passo 5 - Correlação das variáveis numéricas
 if(!require(dlookr)) install.packages("dlookr")
 library(dlookr)
 correlate(train)
@@ -68,16 +78,29 @@ plot_correlate(train)
 # Removendo linhas com dados incompletos (caso ainda tenha)
 train <- train[complete.cases(train),]
 
-# Vendo se a classe está balanceada - levemente desbalanceada
+#Passo 6- Ver se a classe está balanceada
 ##ver se uma classe n tem um numero mto maior de representantes do q a outra classe
 table(train$Survived)  #resumo da variavel survived
 prop.table(table(train$Survived)) #vendo esses valores em porcentagem, freq relativa
+##levemente desbalanceada
 
 ### Modelagem ###
+
+#Passo 6 - Checagem dos pressupostos
+
+#1. Variavel dependente dicotomica (e categorias devem ser mutuamente exclusivas)
+#2. Independencia das observacoes (sem medidas repetidas)
 
 # Modelo 1
 mod1 <- glm(Survived ~ ., data = train, family = binomial(link = "logit"))
 mod1
+
+#3. Ausencia de outliers/ pontos de alavancagem
+
+##plotando o grafico 5, grafico de outliers, grafico de dispersao de residuos
+plot(mod1, which = 5)
+
+##residuos padronizados, tem q ficar entre 3 e -3
 summary(mod1) # os valores p são provenientes do teste de Wald (testa individualmente)
 
 # Null deviance representa o quão bem a variável resposta é prevista por um modelo que 
@@ -89,24 +112,61 @@ summary(mod1) # os valores p são provenientes do teste de Wald (testa individua
 # preditivas. Um modelo com valor mínimo de AIC é considerado um modelo bem ajustado. 
 # O AIC em um modelo de regressão logística é equivalente ao R² ajustado na regressão linear
 
+#4. Ausencia de multicolinearidade
+##multicolinearidade: correlacao muito alta entre 2 ou mais variaveis independentes
+
+##ha multicolinearidade quando r > 0.9 (correlacao de pearson)
+pairs.panels(train)
+
+#dev.off() - usar se acusar erro
+##ha correlacao se vif > 10
+vif(mod1)
+
+#Passo 7 - Analise do modelo 
+
+## Overall effects
+Anova(mod1, type = 'II', test = "Wald")
+#variáveis com valores de p > 0,05 não são preditoras estatisticamente significativas na morte
+
+## Efeitos especificos
+summary(mod1)
+
 # Teste da Razão de Verossimilhança, usado p comparar um modelo maior com um modelo menor
-anova(mod1, test="Chisq")# adiciona as variáveis sequencialmente (a variável adcional melhora o modelo?)
-drop1(mod1, test="Chisq")# remove as variáveis sequencialmente (a variável adcional melhora o modelo?)
+anova(mod1, test="Chisq") # adiciona as variáveis sequencialmente (a variável adicional melhora o modelo?)
+drop1(mod1, test="Chisq") # remove as variáveis sequencialmente (a variável adicional melhora o modelo?)
+
+#Passo 8 - Criacao e analise de um segundo modelo
 
 # Modelo 2
 mod2 <- glm(Survived ~ Pclass + Sex + Age + SibSp,
             data = train, family = binomial(link = "logit"))
+
+## Overall effects
+Anova(mod2, type="II", test="Wald")
+
+## Efeitos especificos
+#ver diferença no AIC
 summary(mod2)
 summary(mod1)
 
 # Comparando modelo menor com o maior
 anova(mod2, mod1, test="LRT") # se valor p > niv.sig., as variáveis omitidas não são significativas 
-# pode ser Chisq no lugar de LRT - razao de vero
+# pode ser Chisq no lugar de LRT - razao de verossimilhanca
 #valor de p maior q o nivel de significancia 0,05
 #significa que as variaveis obtidas nao sao significativas
 
 # Intervalo de confiança
 confint(mod2)
+
+# Comparacao de modelos
+## AIC e BIC
+AIC(mod1, mod2)
+BIC(mod1, mod2)
+##um eh melhor q o outro quando a diferenca eh de pelo menos 10
+##escolheremos o modelo com menor AIC e BIC, o modelo 2
+
+##outra opcao de comparacao dos modelos: usar Qui-quadrado
+anova(mod2, mod1, test="Chisq")
 
 # Selecionando variáveis automaticamente
 mod3 <- step(mod1, direction = "backward") # baseado no AIC
