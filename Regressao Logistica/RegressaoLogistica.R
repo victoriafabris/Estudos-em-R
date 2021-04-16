@@ -1,3 +1,5 @@
+##fonte da aula: https://www.youtube.com/playlist?list=PLOw62cBQ5j9VE9X4cCCfFMjW_hhEAJUhU
+
 ##analise de um banco de dados que contem informacoes sobre 70 individuos fumantes
 ##e nao fumantes, incluindo nivel de stress e desenvolvimento ou nao de cancer no pulmao
 ##queremos verificar se o habito de fumar e o nivel de stress preveem o desenvolviemnto
@@ -100,18 +102,18 @@ Anova(mod, type = 'II', test = "Wald")
 ##estresse p > 0.05 nao eh previsor estatisticamente significativo do desenv. de cancer de pulmao
 ##habito de fumar p < 0.05 eh previsor estatisticamente significativo
 
-## Efeitos específicos
+## Efeitos espec?ficos
 
 summary(mod)
 ##habito de fumar ta analisando o efeito do sim em relacao ao nao
 
-## Obtenção das razões de chance com IC 95% (usando log-likelihood)
+## Obten??o das raz?es de chance com IC 95% (usando log-likelihood)
 #exp(cbind(OR = coef(mod), confint(mod)))
 
-## Obtenção das razões de chance com IC 95% (usando erro padrão = SPSS)
+## Obten??o das raz?es de chance com IC 95% (usando erro padr?o = SPSS)
 exp(cbind(OR = coef(mod), confint.default(mod)))
 
-#Passo 7 - Criação e análise de um segundo modelo
+#Passo 7 - Cria??o e an?lise de um segundo modelo
 
 mod2 <- glm(Cancer ~ Hab_Fumar,
             family = binomial(link = 'logit'), 
@@ -120,43 +122,43 @@ mod2 <- glm(Cancer ~ Hab_Fumar,
 ## Overall effects
 Anova(mod2, type="II", test="Wald")
 
-## Efeitos específicos
+## Efeitos espec?ficos
 summary(mod2)
 
-## Obtenção das razões de chance com IC 95% (usando log-likelihood)
+## Obten??o das raz?es de chance com IC 95% (usando log-likelihood)
 exp(cbind(OR = coef(mod2), confint(mod2)))
 
-## Obtenção das razões de chance com IC 95% (usando erro padrão = SPSS)
+## Obten??o das raz?es de chance com IC 95% (usando erro padr?o = SPSS)
 exp(cbind(OR = coef(mod2), confint.default(mod2)))
 
-#Passo 8 - Avaliação da qualidade e comparação entre modelos
+#Passo 8 - Avalia??o da qualidade e compara??o entre modelos
 
 ## Pseudo R-quadrado (porcentagem de variancia explicada pelo modelo)
 #ajustado para estar no intervalo 0 e 1
 PseudoR2(mod, which = "Nagelkerke") 
 PseudoR2(mod2, which = "Nagelkerke")
 
-# Comparação de modelos
+# Compara??o de modelos
 ## AIC e BIC
 AIC(mod, mod2)
 BIC(mod, mod2)
-##um é melhor q o outro quando a diferenca eh de pelo menos 10
+##um ? melhor q o outro quando a diferenca eh de pelo menos 10
 ##escolheremos o modelo mais simples, o modelo 2
 
 ##outra opcao de comparacao dos modelos: usar Qui-quadrado
 anova(mod2, mod, test="Chisq")
 
-#Tabela de classificação
+#Tabela de classifica??o
 ClassLog(mod, dados$Cancer)
 ClassLog(mod2, dados$Cancer)
 
-####### Como modificar as categorias de referência? ########
+####### Como modificar as categorias de refer?ncia? ########
 
 levels(dados$Hab_Fumar)
 
 dados$Hab_Fumar <- relevel(dados$Hab_Fumar, ref = "Sim")
 
-### ATENÇÃO: é necessário rodar o modelo novamente!
+### ATEN??O: ? necess?rio rodar o modelo novamente!
 
 levels(dados$Cancer)
 
