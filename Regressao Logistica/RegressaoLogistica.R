@@ -38,10 +38,12 @@ levels(dados$Hab_Fumar) #Nao: categoria de referencia
 
 #1. Variavel dependente dicotomica (e categorias devem ser mutuamente exclusivas)
 #2. Independencia das observacoes (sem medidas repetidas)
+##ver mais sobre independencia
 
 ##os proximos pressupostos so podem ser testados no modelo
 
 #Construcao o modelo:
+##glm is used to fit generalized linear models,
 mod <- glm(Cancer ~ Estresse + Hab_Fumar, #dependente ~ independente + independente
            family = binomial(link = 'logit'), #familia de distribuicao 
            data = dados)
@@ -58,9 +60,10 @@ summary(stdres(mod))
 ##multicolinearidade: correlacao muito alta entre 2 ou mais variaveis independentes
 
 ##ha multicolinearidade quando r > 0.9 (correlacao de pearson)
+##elipses de correlação
 pairs.panels(dados)
 
-#dev.off() - usar se acusar erro
+dev.off() #usar se acusar erro
 ##ha correlacao se vif > 10
 vif(mod)
 
@@ -89,13 +92,13 @@ logito <- mod$linear.predictors
 dados$logito <- logito
 
 ##criando grafico da relacao entre o logito e variavel independente
-ggplot(dados, aes(logito, Estresse)) +
-  geom_point(size = 0.5, alpha = 0.5) +
+ggplot(dados, aes(logito, Hab_Fumar)) +
+  geom_point(size = 0.5, alpha = 0.5) + ##grafico de dispersao
   geom_smooth(method = "loess") + ##visualizar padrao usando metodo loess
   theme_classic()
 
 #Passo 6 - Analise do modelo 
-
+##paramos aqui
 ## Overall effects
 
 Anova(mod, type = 'II', test = "Wald")
@@ -112,9 +115,10 @@ summary(mod)
 
 ## Obtencao das razoes de chance com IC 95% (usando erro padrao = SPSS)
 exp(cbind(OR = coef(mod), confint.default(mod)))
-
+##quando o 1 está incluido no IC, variavel n eh significativa
 #Passo 7 - Criacao e analise de um segundo modelo
 
+##modelo mais simples
 mod2 <- glm(Cancer ~ Hab_Fumar,
             family = binomial(link = 'logit'), 
             data = dados)
@@ -125,10 +129,10 @@ Anova(mod2, type="II", test="Wald")
 ## Efeitos especificos
 summary(mod2)
 
-## Obtencao das razoes de chance com IC 95% (usando log-likelihood)
+## Obtencao das razoes de chance com IC 95% (usando log-likelihood) funcao de verossimilhanca
 exp(cbind(OR = coef(mod2), confint(mod2)))
 
-## Obtencao das razoes de chance com IC 95% (usando erro padr?o = SPSS)
+## Obtencao das razoes de chance com IC 95% (usando erro padrao = SPSS)
 exp(cbind(OR = coef(mod2), confint.default(mod2)))
 
 #Passo 8 - Avaliacao da qualidade e comparacao entre modelos
@@ -149,9 +153,11 @@ BIC(mod, mod2)
 anova(mod2, mod, test="Chisq")
 
 #Tabela de classificacao
+##exibe o quanto o modelo acertou
 ClassLog(mod, dados$Cancer)
 ClassLog(mod2, dados$Cancer)
-
+#acuracia global e pseudo r^2
+##possuem mesmo desempenho
 ####### Como modificar as categorias de referencia? ########
 
 levels(dados$Hab_Fumar)
@@ -163,4 +169,33 @@ dados$Hab_Fumar <- relevel(dados$Hab_Fumar, ref = "Sim")
 levels(dados$Cancer)
 
 dados$Cancer <- relevel(dados$Cancer, ref = "Sim")
+
+### Desempenho do modelo ###
+
+# Gráfico dos efeitos
+##traz graficos de cada variavel exibindo os valores da probabilidade 
+##de acordo com as variaveis preditoras
+library(effects)
+plot(allEffects(mod2))
+
+### Predições ###
+##a partir do modelo, prediz os valores da variavel
+pred <- predict(mod2, dados, type = "response") 
+pred
+result <- as.factor(ifelse(pred > 0.5,1,0))
+result
+
+# Matriz de confusão e medidas
+library(caret)
+confusionMatrix(result, dados$Cancer, positive = "1")
+
+# Curva ROC e AUC
+library(pROC)
+auc <- roc(dados$Cancer, pred)
+auc #aux excelente pois auc máximo é 1
+plot.roc(auc, print.thres = T) # descobrimos o ponto de corte que fornece melhor soma de S e E
+
+# Usando o novo ponto de corte
+result2 <- as.factor(ifelse(pred > 0.551,1,0))
+confusionMatrix(result2, dados$Cancer, positive = "1")
 
