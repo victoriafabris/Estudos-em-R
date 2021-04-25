@@ -48,6 +48,7 @@ mod <- glm(Cancer ~ Estresse + Hab_Fumar, #dependente ~ independente + independe
            family = binomial(link = 'logit'), #familia de distribuicao 
            data = dados)
 
+odds.ratio(mod)
 #3. Ausencia de outliers/ pontos de alavancagem
 
 ##plotando o grafico 5, grafico de outliers, grafico de dispersao de residuos
@@ -60,7 +61,7 @@ summary(stdres(mod))
 ##multicolinearidade: correlacao muito alta entre 2 ou mais variaveis independentes
 
 ##ha multicolinearidade quando r > 0.9 (correlacao de pearson)
-##elipses de correlação
+##elipses de correlacao
 pairs.panels(dados)
 
 dev.off() #usar se acusar erro
@@ -91,23 +92,27 @@ logito <- mod$linear.predictors
 
 dados$logito <- logito
 
-##criando grafico da relacao entre o logito e variavel independente
-ggplot(dados, aes(logito, Hab_Fumar)) +
+##criando grafico de dispersao para verificar a relacao entre o logito e variavel independente
+ggplot(dados, aes(logito, Estresse)) +
   geom_point(size = 0.5, alpha = 0.5) + ##grafico de dispersao
   geom_smooth(method = "loess") + ##visualizar padrao usando metodo loess
   theme_classic()
 
 #Passo 6 - Analise do modelo 
-##paramos aqui
+####### paramos aqui ####### 
 ## Overall effects
 
-Anova(mod, type = 'II', test = "Wald")
+Anova(mod, type = 'II', test = "Wald") ##avaliar se o parametro eh estatisticamente significativo
 ##estresse p > 0.05 nao eh previsor estatisticamente significativo do desenv. de cancer de pulmao
 ##habito de fumar p < 0.05 eh previsor estatisticamente significativo
 
 ## Efeitos especificos
+if(!require(questionr)) install.packages("questionr")
+library(questionr)
 
 summary(mod)
+odds.ratio(mod)
+
 ##habito de fumar ta analisando o efeito do sim em relacao ao nao
 
 ## Obtencao das razoes de chance com IC 95% (usando log-likelihood)
@@ -115,7 +120,9 @@ summary(mod)
 
 ## Obtencao das razoes de chance com IC 95% (usando erro padrao = SPSS)
 exp(cbind(OR = coef(mod), confint.default(mod)))
-##quando o 1 está incluido no IC, variavel n eh significativa
+##quando o 1 esta incluido no IC, variavel n eh significativa
+##pesquisar melhor
+
 #Passo 7 - Criacao e analise de um segundo modelo
 
 ##modelo mais simples
@@ -172,30 +179,30 @@ dados$Cancer <- relevel(dados$Cancer, ref = "Sim")
 
 ### Desempenho do modelo ###
 
-# Gráfico dos efeitos
+# Grafico dos efeitos
 ##traz graficos de cada variavel exibindo os valores da probabilidade 
 ##de acordo com as variaveis preditoras
 library(effects)
 plot(allEffects(mod2))
 
-### Predições ###
+### Predicoes ###
 ##a partir do modelo, prediz os valores da variavel
-pred <- predict(mod2, dados, type = "response") 
+pred <- predict(mod2, dados, type = "response")
 pred
 result <- as.factor(ifelse(pred > 0.5,1,0))
 result
 
-# Matriz de confusão e medidas
+# Matriz de confusao e medidas
 library(caret)
-confusionMatrix(result, dados$Cancer, positive = "1")
+confusionMatrix(result, dados$Cancer, positive = "1") ##deu erro, verificar
 
 # Curva ROC e AUC
 library(pROC)
 auc <- roc(dados$Cancer, pred)
-auc #aux excelente pois auc máximo é 1
+auc #aux excelente pois auc maximo eh 1
 plot.roc(auc, print.thres = T) # descobrimos o ponto de corte que fornece melhor soma de S e E
 
 # Usando o novo ponto de corte
 result2 <- as.factor(ifelse(pred > 0.551,1,0))
-confusionMatrix(result2, dados$Cancer, positive = "1")
+confusionMatrix(result2, dados$Cancer, positive = "1") #verificar
 
