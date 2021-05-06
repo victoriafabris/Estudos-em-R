@@ -120,7 +120,6 @@ pairs.panels(train)
 ##ha correlacao se vif > 10
 vif(mod1)
 
-### paramos aqui ###
 #Passo 7 - Analise do modelo 
 
 ## Overall effects
