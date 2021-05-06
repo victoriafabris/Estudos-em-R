@@ -92,7 +92,11 @@ logito <- mod$linear.predictors
 
 dados$logito <- logito
 
+<<<<<<< HEAD
 ##criando grafico de dispersao para verificar a relacao entre o logito e variavel independente
+=======
+##criando grafico de dispersão para verificar a relacao entre o logito e variavel independente
+>>>>>>> bb1076a05230d800e624dc65369a95e14fbca2b8
 ggplot(dados, aes(logito, Estresse)) +
   geom_point(size = 0.5, alpha = 0.5) + ##grafico de dispersao
   geom_smooth(method = "loess") + ##visualizar padrao usando metodo loess
@@ -102,7 +106,11 @@ ggplot(dados, aes(logito, Estresse)) +
 ####### paramos aqui ####### 
 ## Overall effects
 
+<<<<<<< HEAD
 Anova(mod, type = 'II', test = "Wald") ##avaliar se o parametro eh estatisticamente significativo
+=======
+Anova(mod, type = 'II', test = "Wald") ##avaliar se o parâmetro é estatisticamente significativo
+>>>>>>> bb1076a05230d800e624dc65369a95e14fbca2b8
 ##estresse p > 0.05 nao eh previsor estatisticamente significativo do desenv. de cancer de pulmao
 ##habito de fumar p < 0.05 eh previsor estatisticamente significativo
 
@@ -112,7 +120,10 @@ library(questionr)
 
 summary(mod)
 odds.ratio(mod)
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb1076a05230d800e624dc65369a95e14fbca2b8
 ##habito de fumar ta analisando o efeito do sim em relacao ao nao
 
 ## Obtencao das razoes de chance com IC 95% (usando log-likelihood)

@@ -120,6 +120,7 @@ pairs.panels(train)
 ##ha correlacao se vif > 10
 vif(mod1)
 
+### paramos aqui ###
 #Passo 7 - Analise do modelo 
 
 ## Overall effects
@@ -180,11 +181,16 @@ anova(mod3, mod2, test="LRT") # a variavel Embarked pode ser excluida
 if(!require(questionr)) install.packages("questionr")
 library(questionr)
 odds.ratio(mod2)
+<<<<<<< HEAD
 help("odds.ratio")
 # se o intervalo de confianca compreender o valor 1, ele nao eh significativo
 
 #aumentando 1 ano da idade, a chance de sobrevivencia diminui em 4%
 
+=======
+# se o intervalo de confianca compreender o valor 1, ele nao eh significativo
+#aumentando 1 ano da idade, a chance de sobrevivencia diminui em 4%
+>>>>>>> bb1076a05230d800e624dc65369a95e14fbca2b8
 levels(train$Sex) #a referencia ao o sexo feminino
 #a chance de um homem sobreviver sobreviver em relacao a uma mulher 
 #eh 1-0,06=94% menor
@@ -197,7 +203,11 @@ levels(train$Sex) #a referencia ao o sexo feminino
 library(sjPlot)
 plot_model(mod2, vline.color = "red", sort.est = TRUE, 
            show.values = TRUE, value.offset = .3)
+<<<<<<< HEAD
 #intervalo de confiaca da idade eh mto pequeno, quanto menor melhor
+=======
+#intervalo de confiacaa da idade eh mto pequeno, quanto menor melhor
+>>>>>>> bb1076a05230d800e624dc65369a95e14fbca2b8
 
 ### Qualidado do ajuste ###
 
